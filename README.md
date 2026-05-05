@@ -1,6 +1,6 @@
 # AI-Powered Client Onboarding & Proposal Generation Pipeline
 
-> Built by [Isaac](https://github.com/yourusername) · Issachar Solutions  
+> Built by [Isaac](https://github.com/ikeduah) · Issachar Solutions  
 > Stack: n8n · Claude API (Haiku + Opus + Sonnet) · Tally · Notion · Google Docs · Gmail
 
 ---
@@ -165,7 +165,7 @@ Create Client Record       Create Suggestion            Create Proposal Doc
 
 ## About
 
-Built by Isaac through [Issachar Solutions](https://issacharsolutions.com) as part of an AI automation portfolio.  
+Built by Isaac through [Issachar Solutions](https://issacharsol.com) as part of an AI automation portfolio.  
 Focused on practical, production-grade automation that solves real business problems.
 
-**Connect:** [LinkedIn](https://linkedin.com/in/yourprofile) · [GitHub](https://github.com/yourusername)
+**Connect:** · [GitHub](https://github.com/ikeduah)
