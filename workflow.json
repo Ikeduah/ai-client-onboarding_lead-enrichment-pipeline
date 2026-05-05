@@ -1,0 +1,1160 @@
+﻿{
+    "name":  "AI-Powered Client Intake and Proposal Generator",
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "tally-intake",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "d6407085-1db1-4055-b69b-b1cdfe281769",
+                      "name":  "Tally — New Submission",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       256,
+                                       560
+                                   ],
+                      "webhookId":  "f778fd87-541a-473e-a7e6-14ef0edeebe8"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const fields = $input.first().json.body.data.fields;\n\nconst getVal = (key) =\u003e {\n  const field = fields.find(f =\u003e f.key === key);\n  if (!field || field.value === null || field.value === undefined) return \u0027\u0027;\n  if (Array.isArray(field.value)) {\n    return field.value\n      .map(id =\u003e {\n        const opt = (field.options || []).find(o =\u003e o.id === id);\n        return opt ? opt.text : id;\n      })\n      .join(\u0027, \u0027);\n  }\n  return String(field.value);\n};\n\nreturn [{\n  json: {\n    firstName:        getVal(\u0027question_dAZ4ZN\u0027),\n    lastName:         getVal(\u0027question_YOoKo0\u0027),\n    phone:            getVal(\u0027question_D1XEXp\u0027),\n    email:            getVal(\u0027question_lA0906\u0027),\n    companyName:      getVal(\u0027question_R4Z6ZP\u0027),\n    city:             getVal(\u0027question_rKJVEL\u0027),\n    socialMedia:      getVal(\u0027question_4k9Ljo\u0027),\n    painPoints:       getVal(\u0027question_Vl9B9l\u0027),\n    bookingPlatform:  getVal(\u0027question_oB0a0M\u0027),\n    otherPlatform:    getVal(\u0027question_G1ojoz\u0027),\n    clientVolume:     getVal(\u0027question_OPjejA\u0027),\n    revenueRange:     getVal(\u0027question_E1BrBL\u0027),\n    techComfort:      getVal(\u0027question_jMJLx9\u0027),\n    currentPromos:    getVal(\u0027question_2klLrb\u0027),\n    googleBusiness:   getVal(\u0027question_xQR2Z9\u0027),\n    hasEmailList:     getVal(\u0027question_4k1D1o\u0027),\n    pastAutomations:  getVal(\u0027question_jM0q09\u0027),\n    automationType:   getVal(\u0027question_2kbgbb\u0027),\n    inventoryPlatform: getVal(\u0027question_ZV1lJv\u0027),\n    budget:           getVal(\u0027question_NVbL0b\u0027),\n    successGoal:      getVal(\u0027question_xQ0L09\u0027),\n    clientFolder:     getVal(\u0027question_dAZ4ZN\u0027) + \u0027 \u0027 + getVal(\u0027question_YOoKo0\u0027) + \u0027 — \u0027 + getVal(\u0027question_R4Z6ZP\u0027),\n    submittedAt:      new Date().toISOString()\n  }\n}];"
+                                     },
+                      "id":  "60bfa238-24fc-4473-b44a-b2e9b457c6de",
+                      "name":  "Parse Tally Fields",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       480,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  {
+                                                       "__rl":  true,
+                                                       "value":  "claude-sonnet-4-5",
+                                                       "mode":  "id"
+                                                   },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "32de3f7d-892b-4d64-9e84-772b6a8472f4",
+                      "name":  "Claude Haiku — Enrichment",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       784,
+                                       784
+                                   ],
+                      "credentials":  {
+                                          "anthropicApi":  {
+                                                               "id":  "YOUR_ANTHROPIC_CREDENTIAL_ID",
+                                                               "name":  "Anthropic account"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "=Enrich this intake data:\nCompany: {{ $json.companyName }}\nCity: {{ $json.city }}\nBooking platform: {{ $json.bookingPlatform }}\nMonthly clients: {{ $json.clientVolume }}\nPain points: {{ $json.painPoints }}\nRevenue: {{ $json.revenueRange }}\nBudget: {{ $json.budget }}\nTech comfort: {{ $json.techComfort }}\nEmail list: {{ $json.hasEmailList }}\nPast automations: {{ $json.pastAutomations }}\nSuccess goal: {{ $json.successGoal }}\n\nReturn exactly:\n{\n  \"businessType\": \"solo stylist / small salon / multi-service spa / etc\",\n  \"estimatedTeamSize\": \"solo / 2-4 staff / 5+ staff\",\n  \"urgencyLevel\": \"low / medium / high\",\n  \"budgetFitAssessment\": \"underfunded / aligned / well-funded\",\n  \"suggestedPackageTier\": \"Starter / Growth / Full Stack — one sentence justification\",\n  \"primaryPainCategory\": \"single most critical pain point\",\n  \"redFlags\": [\"array of concerns\"],\n  \"enrichedContext\": \"2-3 sentence narrative summary\"\n}",
+                                         "options":  {
+                                                         "systemMessage":  "You are a business analyst for Issachar Solutions. Enrich client data with inferences only — never fabricate. Return ONLY a raw JSON object, no markdown fences."
+                                                     }
+                                     },
+                      "id":  "cb0e66d5-4ed7-4c7f-aea1-1c6a73279180",
+                      "name":  "Data Enrichment",
+                      "type":  "@n8n/n8n-nodes-langchain.agent",
+                      "typeVersion":  3.1,
+                      "position":  [
+                                       704,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const input = $input.first().json;\n\n// Response is in input.output as a string\nconst rawText = (input.output || \u0027\u0027)\n  .replace(/```json\\n?/g, \u0027\u0027)\n  .replace(/```\\n?/g, \u0027\u0027)\n  .trim();\n\nconst parsed = JSON.parse(rawText);\nconst original = $(\u0027Parse Tally Fields\u0027).first().json;\n\nreturn [{ json: { ...original, ...parsed } }];"
+                                     },
+                      "id":  "ea3b852b-0fa0-4679-a299-7d38bb08087a",
+                      "name":  "Parse Enrichment",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1056,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "id-1",
+                                                                                   "leftValue":  "={{ $(\u0027Parse Enrichment\u0027).item.json.budgetFitAssessment }}",
+                                                                                   "rightValue":  "underfunded",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "notEquals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c4b82cfe-d2a9-4c37-8564-7dc8de3d7bd1",
+                      "name":  "Budget Router",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       1280,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://api.perplexity.ai/chat/completions",
+                                         "authentication":  "predefinedCredentialType",
+                                         "nodeCredentialType":  "perplexityApi",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"model\": \"sonar-pro\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a business intelligence researcher for an AI automation consultancy. Provide specific, actionable insights with sources where possible.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{ \u0027Research the \u0027 + $json.businessType + \u0027 industry for a business in \u0027 + $json.city + \u0027. Cover: 1. Top platforms for a \u0027 + $json.estimatedTeamSize + \u0027 operation with pros and cons. 2. Client retention and loyalty trends 2024-2025. 3. Common operational pain points and proven solutions. 4. Automation tools at the \u0027 + $json.suggestedPackageTier + \u0027 budget level. 5. Revenue benchmarks for \u0027 + $json.clientVolume + \u0027 monthly clients in \u0027 + $json.city + \u0027. Primary pain point: \u0027 + $json.primaryPainCategory + \u0027. Budget: \u0027 + $json.budget + \u0027. Return structured bullet points with sources.\u0027 }}\"\n    }\n  ]\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "1d83b285-2106-4ae1-844c-f06b15fcb82f",
+                      "name":  "Research Industry",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       1504,
+                                       176
+                                   ],
+                      "credentials":  {
+                                          "perplexityApi":  {
+                                                                "id":  "YOUR_PERPLEXITY_CREDENTIAL_ID",
+                                                                "name":  "Perplexity account"
+                                                            }
+                                      },
+                      "onError":  "continueErrorOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://api.perplexity.ai/chat/completions",
+                                         "authentication":  "predefinedCredentialType",
+                                         "nodeCredentialType":  "perplexityApi",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"model\": \"sonar-pro\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a competitive intelligence researcher for an AI automation consultancy. Provide specific, actionable insights with sources where possible.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{ \u0027Research the local \u0027 + $json.businessType + \u0027 market in \u0027 + $json.city + \u0027. Find: 1. What top-rated local \u0027 + $json.businessType + \u0027 businesses offer in booking, loyalty programs, and client communication — check Google reviews and websites. 2. Whether local competitors use automated reminders, follow-ups, review requests, or online booking. 3. Patterns in negative Google reviews for \u0027 + $json.businessType + \u0027 businesses in \u0027 + $json.city + \u0027 — recurring complaints. 4. Market gaps that \u0027 + $json.companyName + \u0027 could exploit with better technology and automation. 5. Competitive pricing landscape for \u0027 + $json.businessType + \u0027 businesses in \u0027 + $json.city + \u0027. Budget context: \u0027 + $json.budget + \u0027. Primary pain point: \u0027 + $json.primaryPainCategory + \u0027. Return as a structured gap analysis with clear sections.\u0027 }}\"\n    }\n  ]\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "94dfe538-92e9-4274-aa07-330459c7458e",
+                      "name":  "Research Competitors",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       1504,
+                                       416
+                                   ],
+                      "credentials":  {
+                                          "perplexityApi":  {
+                                                                "id":  "YOUR_PERPLEXITY_CREDENTIAL_ID",
+                                                                "name":  "Perplexity account"
+                                                            }
+                                      },
+                      "onError":  "continueErrorOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  {
+                                                       "__rl":  true,
+                                                       "value":  "claude-haiku-4-5",
+                                                       "mode":  "id"
+                                                   },
+                                         "options":  {
+                                                         "maxTokensToSample":  800
+                                                     }
+                                     },
+                      "id":  "c046bd86-e32d-4086-8749-5110843da105",
+                      "name":  "Claude Haiku — Tool Audit",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       1808,
+                                       1008
+                                   ],
+                      "credentials":  {
+                                          "anthropicApi":  {
+                                                               "id":  "YOUR_ANTHROPIC_CREDENTIAL_ID",
+                                                               "name":  "Anthropic account"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "=={{ \u0027Perform a technical automation audit for this client.\\n\\nCLIENT PROFILE:\\nBusiness type: \u0027 + $json.businessType + \u0027\\nBooking platform: \u0027 + $json.bookingPlatform + \u0027\\nInventory platform: \u0027 + $json.inventoryPlatform + \u0027\\nEmail list: \u0027 + $json.hasEmailList + \u0027\\nMonthly clients: \u0027 + $json.clientVolume + \u0027\\nBudget: $\u0027 + $json.budget + \u0027\\nTech comfort: \u0027 + $json.techComfort + \u0027/5\\nPain points: \u0027 + $json.painPoints + \u0027\\nPrimary pain: \u0027 + $json.primaryPainCategory + \u0027\\nSuccess goal: \u0027 + $json.successGoal + \u0027\\n\\nAnswer concisely:\\n1. What native automations does \u0027 + $json.bookingPlatform + \u0027 support out of the box for a \u0027 + $json.businessType + \u0027?\\n2. Given $\u0027 + $json.budget + \u0027 budget and \u0027 + $json.techComfort + \u0027/5 tech comfort, what is buildable in Phase 1 (0-30 days) vs Phase 2 (30-90 days)?\\n3. What is the single highest-impact automation for \u0027 + $json.primaryPainCategory + \u0027?\\n4. What specific tools or integrations would complement \u0027 + $json.bookingPlatform + \u0027 for a \u0027 + $json.businessType + \u0027 at this budget — include names and approximate costs?\\n5. Any red flags or technical blockers to flag before starting?\\n\\nReturn a concise structured brief. 3-4 sentences per section maximum.\u0027 }}",
+                                         "options":  {
+                                                         "systemMessage":  "You are a senior technical automation specialist at Issachar Solutions, an AI automation consultancy serving small businesses. Your job is to produce a precise, opinionated technical audit — not a generic overview.\n\nYou have deep knowledge of small business software stacks, API capabilities, webhook availability, and no-code/low-code automation tools including n8n, Zapier, Make, and native platform integrations.\n\nYour recommendations must be:\n- Grounded in the client\u0027s actual budget — never recommend what they cannot afford\n- Calibrated to their tech comfort level — simpler solutions for lower scores\n- Specific to their booking platform\u0027s actual capabilities and limitations\n- Prioritized by impact on their stated pain points\n- Honest about limitations and risks\n\nNever give generic advice. Every recommendation must reference the client\u0027s specific platform, budget, pain points, and business type."
+                                                     }
+                                     },
+                      "id":  "fe9cc9a0-0abb-4ab3-a7e1-5d7c4e5b8b91",
+                      "name":  "Tool Audit",
+                      "type":  "@n8n/n8n-nodes-langchain.agent",
+                      "typeVersion":  3.1,
+                      "position":  [
+                                       1728,
+                                       784
+                                   ],
+                      "onError":  "continueErrorOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "id-1",
+                                                                                   "leftValue":  "={{ $json.error.message }}",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "exists"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c31f4a2d-5719-407c-8eda-82856ae643ed",
+                      "name":  "Industry Error?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       1792,
+                                       96
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  false,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "loose",
+                                                                            "version":  1
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "id-1",
+                                                                                   "leftValue":  "={{ $json.error.message }}",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "exists"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "04ae99c5-34b4-42b0-bb7f-c191d91e01b4",
+                      "name":  "Competitor Error?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       1792,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "id-1",
+                                                                                     "name":  "industryResearch",
+                                                                                     "value":  "Research unavailable - API error",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "8a9d6247-4d12-4fd2-b95b-0f65b01314be",
+                      "name":  "Industry Fallback",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2080,
+                                       96
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "id-1",
+                                                                                     "name":  "competitorResearch",
+                                                                                     "value":  "Research unavailable - API error",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "54749276-6d2a-4501-a7b9-e3d668f1a8f8",
+                      "name":  "Competitor Fallback",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2080,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "id-1",
+                                                                                     "name":  "toolAudit",
+                                                                                     "value":  "Tool audit unavailable - analysis error",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "id-2",
+                                                                                     "name":  "researchSkipped",
+                                                                                     "value":  true,
+                                                                                     "type":  "boolean"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "066789d3-966c-460f-acd4-3dad0e4db886",
+                      "name":  "Tool Fallback",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2080,
+                                       848
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "numberInputs":  7
+                                     },
+                      "id":  "d0ca646e-5ead-44cd-9aae-a9a921bbe0d6",
+                      "name":  "Merge",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       2304,
+                                       400
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const items = $input.all();\nconst base = $(\u0027Parse Enrichment\u0027).first().json;\n\nconst industryData = items.find(i =\u003e i.json.choices?.[0]?.message?.content);\nconst competitorData = items.find(i =\u003e i.json.choices?.[0]?.message?.content \u0026\u0026 i !== industryData);\nconst toolData = items.find(i =\u003e i.json.message?.content?.[0]?.text);\n\nconst industryFallback = items.find(i =\u003e i.json.industryResearch);\nconst competitorFallback = items.find(i =\u003e i.json.competitorResearch);\nconst toolFallback = items.find(i =\u003e i.json.toolAudit);\nconst skipResearch = items.find(i =\u003e i.json.researchSkipped);\n\nif (skipResearch) {\n  return [{\n    json: {\n      ...base,\n      industryResearch: \u0027Research skipped - budget constraints\u0027,\n      competitorResearch: \u0027Research skipped - budget constraints\u0027,\n      toolAudit: \u0027Research skipped - budget constraints\u0027\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...base,\n    industryResearch: industryData?.json?.choices?.[0]?.message?.content || industryFallback?.json?.industryResearch || \u0027No industry research available\u0027,\n    competitorResearch: competitorData?.json?.choices?.[0]?.message?.content || competitorFallback?.json?.competitorResearch || \u0027No competitor research available\u0027,\n    toolAudit: toolData?.json?.message?.content?.[0]?.text || toolFallback?.json?.toolAudit || \u0027No tool audit available\u0027\n  }\n}];"
+                                     },
+                      "id":  "b8ea79db-03f4-4eb4-8f5c-5931d953bf8c",
+                      "name":  "Assemble Context",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2528,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  {
+                                                       "__rl":  true,
+                                                       "value":  "claude-opus-4-5",
+                                                       "mode":  "id"
+                                                   },
+                                         "options":  {
+                                                         "maxTokensToSample":  2000
+                                                     }
+                                     },
+                      "id":  "1607b418-a9e1-4f1e-9901-6d0bbe4b5331",
+                      "name":  "Claude Opus — Synthesis",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       2752,
+                                       688
+                                   ],
+                      "credentials":  {
+                                          "anthropicApi":  {
+                                                               "id":  "YOUR_ANTHROPIC_CREDENTIAL_ID",
+                                                               "name":  "Anthropic account"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ \u0027Generate an internal suggestion report.\\n\\nCLIENT PROFILE:\\nName: \u0027 + $json.firstName + \u0027 \u0027 + $json.lastName + \u0027\\nCompany: \u0027 + $json.companyName + \u0027\\nBusiness type: \u0027 + $json.businessType + \u0027\\nCity: \u0027 + $json.city + \u0027\\nTeam size: \u0027 + $json.estimatedTeamSize + \u0027\\nBooking platform: \u0027 + $json.bookingPlatform + \u0027\\nInventory platform: \u0027 + $json.inventoryPlatform + \u0027\\nMonthly clients: \u0027 + $json.clientVolume + \u0027\\nRevenue: \u0027 + $json.revenueRange + \u0027\\nBudget: $\u0027 + $json.budget + \u0027\\nTech comfort: \u0027 + $json.techComfort + \u0027/5\\nPain points: \u0027 + $json.painPoints + \u0027\\nPrimary pain: \u0027 + $json.primaryPainCategory + \u0027\\nEmail list: \u0027 + $json.hasEmailList + \u0027\\nSuccess goal: \u0027 + $json.successGoal + \u0027\\nPast automations: \u0027 + $json.pastAutomations + \u0027\\n\\nENRICHMENT:\\n\u0027 + $json.enrichedContext + \u0027\\nUrgency: \u0027 + $json.urgencyLevel + \u0027\\nBudget fit: \u0027 + $json.budgetFitAssessment + \u0027\\nSuggested tier: \u0027 + $json.suggestedPackageTier + \u0027\\nRed flags: \u0027 + $json.redFlags + \u0027\\n\\nINDUSTRY RESEARCH:\\n\u0027 + $json.researchIndustry + \u0027\\n\\nCOMPETITOR SCAN:\\n\u0027 + $json.researchCompetitors + \u0027\\n\\nTOOL AUDIT:\\n\u0027 + $json.toolAudit + \u0027\\n\\nSections:\\n# Internal Suggestion Report — [Company]\\n## Executive Summary\\n## Client Snapshot\\n## Critical Pain Points\\n## Research Findings\\n### Industry Insights\\n### Competitor Landscape\\n### Platform Capabilities\\n## Gap Analysis\\n## Recommended Automations\\n[Each: name, what it solves, build time, cost, ROI]\\n## Phased Delivery Plan\\n### Phase 1 — Quick wins (Week 1-2)\\n### Phase 2 — Core build (Week 3-4)\\n### Phase 3 — Advanced (Month 2-3)\\n## Budget vs Scope\\n## Red Flags\\n[Table: Risk | Impact | Mitigation]\\n## Recommended Package\\n[Name, price, deliverables, justification]\u0027 }}",
+                                         "options":  {
+                                                         "systemMessage":  "You are a senior AI automation consultant at Issachar Solutions. Generate a comprehensive internal suggestion report for Isaac to review before client engagement. Be analytical, honest, and specific. Flag risks clearly. Output clean markdown only — no JSON wrapper needed."
+                                                     }
+                                     },
+                      "id":  "0f4e0ebc-8118-412c-baf0-5e38a568f33f",
+                      "name":  "Opus Synthesis",
+                      "type":  "@n8n/n8n-nodes-langchain.agent",
+                      "typeVersion":  3.1,
+                      "position":  [
+                                       2752,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const input = $input.first().json;\nconst suggestionReport = input.output || input?.message?.content?.[0]?.text || \u0027\u0027;\n\nconst chunkText = (text, maxLength = 1800) =\u003e {\n  const chunks = [];\n  const paragraphs = text.split(\u0027\\n\\n\u0027);\n  let currentChunk = \u0027\u0027;\n  \n  for (const para of paragraphs) {\n    if ((currentChunk + para).length \u003e maxLength \u0026\u0026 currentChunk) {\n      chunks.push(currentChunk.trim());\n      currentChunk = para;\n    } else {\n      currentChunk += (currentChunk ? \u0027\\n\\n\u0027 : \u0027\u0027) + para;\n    }\n  }\n  if (currentChunk) chunks.push(currentChunk.trim());\n  return chunks;\n};\n\nconst original = $(\u0027Assemble Context\u0027).first().json;\n\nreturn [{\n  json: {\n    ...original,\n    suggestionReport,\n    reportChunks: chunkText(suggestionReport)\n  }\n}];"
+                                     },
+                      "id":  "76d608c2-3c44-4f27-a545-9ffccd1b5bd5",
+                      "name":  "Parse Opus Output",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       3104,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "id-1",
+                                                                                     "name":  "researchSkipped",
+                                                                                     "value":  true,
+                                                                                     "type":  "boolean"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "0b45826e-0265-4dbf-8fc9-342d2290fe33",
+                      "name":  "Skip Research",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2080,
+                                       1072
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  {
+                                                       "__rl":  true,
+                                                       "mode":  "id",
+                                                       "value":  "claude-sonnet-4-5"
+                                                   },
+                                         "options":  {
+                                                         "maxTokensToSample":  2000
+                                                     }
+                                     },
+                      "id":  "130ffd44-61fa-4904-8d70-75abfcdc55e6",
+                      "name":  "Claude Sonnet — Proposal",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       3328,
+                                       704
+                                   ],
+                      "credentials":  {
+                                          "anthropicApi":  {
+                                                               "id":  "YOUR_ANTHROPIC_CREDENTIAL_ID",
+                                                               "name":  "Anthropic account"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ \u0027Write a client-facing proposal based on this internal analysis.\\n\\nCLIENT:\\nName: \u0027 + $json.firstName + \u0027 \u0027 + $json.lastName + \u0027\\nCompany: \u0027 + $json.companyName + \u0027\\nCity: \u0027 + $json.city + \u0027\\nBusiness type: \u0027 + $json.businessType + \u0027\\nPain points: \u0027 + $json.painPoints + \u0027\\nBudget: $\u0027 + $json.budget + \u0027\\nSuccess goal: \u0027 + $json.successGoal + \u0027\\n\\nINTERNAL ANALYSIS (inform the proposal — do not copy verbatim):\\n\u0027 + $json.suggestionReport + \u0027\\n\\nSections:\\n# Proposal for \u0027 + $json.companyName + \u0027\\n\\n## Hi \u0027 + $json.firstName + \u0027,\\n[Warm personalized opening referencing their situation in \u0027 + $json.city + \u0027]\\n\\n## What We Heard\\n[Mirror pain points in plain language — no jargon]\\n\\n## What We Propose\\n[Plain language solution overview — outcomes not technology]\\n\\n## What We Will Build\\n[Specific deliverables. Each item references a pain point it solves.]\\n\\n## What This Looks Like in 90 Days\\n[Concrete outcomes with numbers where possible]\\n\\n## Your Investment\\n[Package name, price range, payment terms as investment with expected return]\\n\\n## How We Get Started\\n[3 clear next steps with call to action]\u0027 }}",
+                                         "options":  {
+                                                         "systemMessage":  "You are a professional business consultant writing a client-facing proposal for Issachar Solutions. Your tone is warm, confident, and specific. Never use jargon. Write as if speaking directly to the business owner. Focus on their pain, their goals, and specific outcomes — not technology for its own sake."
+                                                     }
+                                     },
+                      "id":  "b8ce3f5d-b96c-446f-8e06-6bbe889d788a",
+                      "name":  "Sonnet — Client Proposal",
+                      "type":  "@n8n/n8n-nodes-langchain.agent",
+                      "typeVersion":  3.1,
+                      "position":  [
+                                       3328,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const input = $input.first().json;\nconst proposal = input.output || input?.message?.content?.[0]?.text || \u0027\u0027;\nconst suggestionReport = $(\u0027Opus Synthesis\u0027).first().json.output || \u0027\u0027;\nconst base = $(\u0027Assemble Context\u0027).first().json;\n\nreturn [{\n  json: {\n    ...base,\n    suggestionReport: suggestionReport,\n    clientProposal: proposal,\n    reportChunks: suggestionReport.match(/.{1,1900}(\\s|$)/gs) || [suggestionReport],\n    proposalChunks: proposal.match(/.{1,1900}(\\s|$)/gs) || [proposal]\n  }\n}];"
+                                     },
+                      "id":  "b2afc059-85c8-4959-9080-b582d4ff371d",
+                      "name":  "Parse Proposal",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       3680,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "resource":  "databasePage",
+                                         "databaseId":  {
+                                                            "__rl":  true,
+                                                            "value":  "YOUR_NOTION_CLIENT_DATABASE_ID",
+                                                            "mode":  "id"
+                                                        },
+                                         "title":  "={{ $json.companyName }}",
+                                         "simple":  false,
+                                         "propertiesUi":  {
+                                                              "propertyValues":  [
+                                                                                     {
+                                                                                         "key":  "Full Name|rich_text",
+                                                                                         "type":  "rich_text",
+                                                                                         "textContent":  "={{ $json.firstName }} {{ $json.lastName }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Primary contact|rich_text",
+                                                                                         "type":  "rich_text",
+                                                                                         "textContent":  "={{ $json.phone }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Status|select",
+                                                                                         "type":  "select",
+                                                                                         "selectValue":  "Lead"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Email|rich_text",
+                                                                                         "textContent":  "={{ $json.email }}"
+                                                                                     }
+                                                                                 ]
+                                                          },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "40387e43-f886-4aab-bb5e-454119f951c1",
+                      "name":  "Create Client Record",
+                      "type":  "n8n-nodes-base.notion",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       4128,
+                                       480
+                                   ],
+                      "credentials":  {
+                                          "notionApi":  {
+                                                            "id":  "YOUR_NOTION_CREDENTIAL_ID",
+                                                            "name":  "Notion account"
+                                                        }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const input = $(\u0027Parse Proposal\u0027).first().json;\nconst suggestionReport = input.suggestionReport || \u0027\u0027;\nconst clientProposal = input.clientProposal || \u0027\u0027;\n\n// Function to chunk text into ~1900 character segments at paragraph boundaries\nconst chunkText = (text, maxLength = 1900) =\u003e {\n  const chunks = [];\n  const paragraphs = text.split(\u0027\\n\\n\u0027);\n  let currentChunk = \u0027\u0027;\n  \n  for (const para of paragraphs) {\n    if ((currentChunk + para).length \u003e maxLength \u0026\u0026 currentChunk) {\n      chunks.push(currentChunk.trim());\n      currentChunk = para;\n    } else {\n      currentChunk += (currentChunk ? \u0027\\n\\n\u0027 : \u0027\u0027) + para;\n    }\n  }\n  if (currentChunk) chunks.push(currentChunk.trim());\n  return chunks;\n};\n\n// Create chunks\nconst reportChunks = chunkText(suggestionReport);\nconst proposalChunks = chunkText(clientProposal);\n\n// Build Notion paragraph block arrays\nconst reportBlocks = reportChunks.map(chunk =\u003e ({\n  type: \u0027paragraph\u0027,\n  paragraph: {\n    rich_text: [{\n      type: \u0027text\u0027,\n      text: { content: chunk }\n    }]\n  }\n}));\n\nconst proposalBlocks = proposalChunks.map(chunk =\u003e ({\n  type: \u0027paragraph\u0027,\n  paragraph: {\n    rich_text: [{\n      type: \u0027text\u0027,\n      text: { content: chunk }\n    }]\n  }\n}));\n\nreturn [{\n  json: {\n    ...input,\n    reportChunks,\n    proposalChunks,\n    reportBlocks,\n    proposalBlocks\n  }\n}];"
+                                     },
+                      "id":  "be9ec4d5-13f3-4113-b5b2-bc392c463e19",
+                      "name":  "Build Report Blocks",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       3904,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://api.notion.com/v1/pages",
+                                         "authentication":  "predefinedCredentialType",
+                                         "nodeCredentialType":  "notionApi",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Notion-Version",
+                                                                                         "value":  "2022-06-28"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ JSON.stringify({\n  \"parent\": { \"database_id\": \"YOUR_NOTION_DOCS_DATABASE_ID\" },\n  \"properties\": {\n    \"Doc\": {\n      \"title\": [{ \"text\": { \"content\": \"Suggestion Report — \" + $(\u0027Build Report Blocks\u0027).first().json.firstName + \" \" + $(\u0027Build Report Blocks\u0027).first().json.lastName } }]\n    },\n    \"Type\": { \"select\": { \"name\": \"Suggestions\" } },\n    \"Tally submission ID\": { \"rich_text\": [{ \"text\": { \"content\": $(\u0027Tally — New Submission\u0027).first().json.body.data.submissionId || \"\" } }] },\n    \"Client\": { \"relation\": [{ \"id\": $(\u0027Create Client Record\u0027).first().json.id }] }\n  },\n  \"children\": $(\u0027Build Report Blocks\u0027).first().json.reportBlocks\n}) }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "ba37992e-27a5-4863-9306-0b05b82cb437",
+                      "name":  "Create Suggestion Report Doc",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       4352,
+                                       480
+                                   ],
+                      "credentials":  {
+                                          "notionApi":  {
+                                                            "id":  "YOUR_NOTION_CREDENTIAL_ID",
+                                                            "name":  "Notion account"
+                                                        }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://api.notion.com/v1/pages",
+                                         "authentication":  "predefinedCredentialType",
+                                         "nodeCredentialType":  "notionApi",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Notion-Version",
+                                                                                         "value":  "2022-06-28"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ JSON.stringify({\n  \"parent\": { \"database_id\": \"YOUR_NOTION_DOCS_DATABASE_ID\" },\n  \"properties\": {\n    \"Doc\": {\n      \"title\": [{\n        \"text\": {\n          \"content\": \"Client Proposal — \" + $(\u0027Build Report Blocks\u0027).first().json.firstName + \" \" + $(\u0027Build Report Blocks\u0027).first().json.lastName\n        }\n      }]\n    },\n    \"Type\": {\n      \"select\": { \"name\": \"Proposal\" }\n    },\n    \"Tally submission ID\": {\n      \"rich_text\": [{\n        \"text\": {\n          \"content\": $(\u0027Tally — New Submission\u0027).first().json.body.data.submissionId || \"\"\n        }\n      }]\n    },\n    \"Client\": {\n      \"relation\": [{ \"id\": $(\u0027Create Client Record\u0027).first().json.id }]\n    }\n  },\n  \"children\": $(\u0027Build Report Blocks\u0027).first().json.proposalBlocks\n}) }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "78fdacd3-4ed8-41b7-b46e-6216d3d26e17",
+                      "name":  "Create Proposal Doc",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       4576,
+                                       480
+                                   ],
+                      "credentials":  {
+                                          "notionApi":  {
+                                                            "id":  "YOUR_NOTION_CREDENTIAL_ID",
+                                                            "name":  "Notion account"
+                                                        }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "resource":  "databasePage",
+                                         "databaseId":  {
+                                                            "__rl":  true,
+                                                            "value":  "YOUR_NOTION_INTAKE_DATABASE_ID",
+                                                            "mode":  "list",
+                                                            "cachedResultName":  "Client Intake",
+                                                            "cachedResultUrl":  "https://www.notion.so/YOUR_NOTION_INTAKE_DATABASE_ID"
+                                                        },
+                                         "title":  "={{ $(\u0027Build Report Blocks\u0027).first().json.firstName + \u0027 \u0027 + $(\u0027Build Report Blocks\u0027).first().json.lastName }}",
+                                         "simple":  false,
+                                         "propertiesUi":  {
+                                                              "propertyValues":  [
+                                                                                     {
+                                                                                         "key":  "Status|select",
+                                                                                         "type":  "select",
+                                                                                         "selectValue":  "New"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Submitted at|date",
+                                                                                         "type":  "date",
+                                                                                         "date":  "={{ $(\u0027Build Report Blocks\u0027).first().json.submittedAt }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Tally submission ID|rich_text",
+                                                                                         "type":  "rich_text",
+                                                                                         "textContent":  "={{ $(\u0027Tally — New Submission\u0027).first().json.body.data.submissionId }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "Clients|relation",
+                                                                                         "type":  "relation",
+                                                                                         "relationValue":  [
+                                                                                                               "={{ $(\u0027Create Client Record\u0027).first().json.id }}"
+                                                                                                           ]
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "=Proposal doc|relation",
+                                                                                         "type":  "relation",
+                                                                                         "relationValue":  [
+                                                                                                               "={{ $(\u0027Create Proposal Doc\u0027).first().json.id }}"
+                                                                                                           ]
+                                                                                     },
+                                                                                     {
+                                                                                         "key":  "=Suggestions doc|relation",
+                                                                                         "type":  "relation",
+                                                                                         "relationValue":  [
+                                                                                                               "={{ $(\u0027Create Suggestion Report Doc\u0027).first().json.id }}"
+                                                                                                           ]
+                                                                                     }
+                                                                                 ]
+                                                          },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "caf3fa6d-babf-47f2-a08b-55961af65409",
+                      "name":  "Create Client Intake Row",
+                      "type":  "n8n-nodes-base.notion",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       4800,
+                                       480
+                                   ],
+                      "credentials":  {
+                                          "notionApi":  {
+                                                            "id":  "YOUR_NOTION_CREDENTIAL_ID",
+                                                            "name":  "Notion account"
+                                                        }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "sendTo":  "YOUR_NOTIFICATION_EMAIL@example.com",
+                                         "subject":  "={{ \u0027🔔 New Client Intake — \u0027 + $(\u0027Build Report Blocks\u0027).first().json.firstName + \u0027 \u0027 + $(\u0027Build Report Blocks\u0027).first().json.lastName + \u0027 (\u0027 + $(\u0027Build Report Blocks\u0027).first().json.companyName + \u0027)\u0027 }}",
+                                         "message":  "={{ \u0027\u003ch2\u003eNew Client Submission Received\u003c/h2\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eName:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.firstName + \u0027 \u0027 + $(\u0027Build Report Blocks\u0027).first().json.lastName + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eCompany:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.companyName + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eCity:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.city + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eBusiness type:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.businessType + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eEmail:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.email + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003ePhone:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.phone + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eBudget:\u003c/strong\u003e $\u0027 + $(\u0027Build Report Blocks\u0027).first().json.budget + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003ePain points:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.painPoints + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eSuggested tier:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.suggestedPackageTier + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eUrgency:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.urgencyLevel + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eBudget fit:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.budgetFitAssessment + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003ePrimary pain:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.primaryPainCategory + \u0027\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eSuccess goal:\u003c/strong\u003e \u0027 + $(\u0027Build Report Blocks\u0027).first().json.successGoal + \u0027\u003c/p\u003e\u0027 + \u0027\u003chr\u003e\u0027 + \u0027\u003cp\u003e\u003cstrong\u003eSummary:\u003c/strong\u003e\u003cbr\u003e\u0027 + $(\u0027Build Report Blocks\u0027).first().json.enrichedContext + \u0027\u003c/p\u003e\u0027 + \u0027\u003chr\u003e\u0027 + \u0027\u003cp\u003e📄 \u003ca href=\"\u0027 + $(\u0027Create Proposal Doc\u0027).first().json.url + \u0027\"\u003eView Client Proposal\u003c/a\u003e\u003c/p\u003e\u0027 + \u0027\u003cp\u003e📋 \u003ca href=\"\u0027 + $(\u0027Create Suggestion Report Doc\u0027).first().json.url + \u0027\"\u003eView Suggestion Report\u003c/a\u003e\u003c/p\u003e\u0027 + \u0027\u003cp\u003e\u003cem\u003eSubmitted at: \u0027 + $(\u0027Build Report Blocks\u0027).first().json.submittedAt + \u0027\u003c/em\u003e\u003c/p\u003e\u0027 }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "829951e4-6dc1-4ffe-a450-5257e136bd19",
+                      "name":  "Send Notification Email",
+                      "type":  "n8n-nodes-base.gmail",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       5024,
+                                       480
+                                   ],
+                      "webhookId":  "a8362fbc-e30e-4c6e-9aea-8fac60e413cc",
+                      "credentials":  {
+                                          "gmailOAuth2":  {
+                                                              "id":  "YOUR_GMAIL_CREDENTIAL_ID",
+                                                              "name":  "Gmail OAuth2 API"
+                                                          }
+                                      }
+                  }
+              ],
+    "connections":  {
+                        "Tally — New Submission":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "Parse Tally Fields",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "Parse Tally Fields":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Data Enrichment",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Claude Haiku — Enrichment":  {
+                                                          "ai_languageModel":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "node":  "Data Enrichment",
+                                                                                           "type":  "ai_languageModel",
+                                                                                           "index":  0
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                      },
+                        "Data Enrichment":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Parse Enrichment",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Parse Enrichment":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Budget Router",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Budget Router":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Research Industry",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               },
+                                                               {
+                                                                   "node":  "Research Competitors",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               },
+                                                               {
+                                                                   "node":  "Tool Audit",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ],
+                                                           [
+                                                               {
+                                                                   "node":  "Skip Research",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "Claude Haiku — Tool Audit":  {
+                                                          "ai_languageModel":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "node":  "Tool Audit",
+                                                                                           "type":  "ai_languageModel",
+                                                                                           "index":  0
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                      },
+                        "Research Industry":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Merge",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ],
+                                                               [
+                                                                   {
+                                                                       "node":  "Industry Error?",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Research Competitors":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Merge",
+                                                                          "type":  "main",
+                                                                          "index":  1
+                                                                      }
+                                                                  ],
+                                                                  [
+                                                                      {
+                                                                          "node":  "Competitor Error?",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Industry Error?":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Industry Fallback",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Competitor Error?":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Competitor Fallback",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Tool Audit":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "Merge",
+                                                                "type":  "main",
+                                                                "index":  2
+                                                            }
+                                                        ],
+                                                        [
+                                                            {
+                                                                "node":  "Tool Fallback",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "Industry Fallback":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Merge",
+                                                                       "type":  "main",
+                                                                       "index":  3
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Competitor Fallback":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Merge",
+                                                                         "type":  "main",
+                                                                         "index":  4
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Tool Fallback":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Merge",
+                                                                   "type":  "main",
+                                                                   "index":  5
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "Merge":  {
+                                      "main":  [
+                                                   [
+                                                       {
+                                                           "node":  "Assemble Context",
+                                                           "type":  "main",
+                                                           "index":  0
+                                                       }
+                                                   ]
+                                               ]
+                                  },
+                        "Assemble Context":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Opus Synthesis",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Claude Opus — Synthesis":  {
+                                                        "ai_languageModel":  [
+                                                                                 [
+                                                                                     {
+                                                                                         "node":  "Opus Synthesis",
+                                                                                         "type":  "ai_languageModel",
+                                                                                         "index":  0
+                                                                                     }
+                                                                                 ]
+                                                                             ]
+                                                    },
+                        "Opus Synthesis":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Parse Opus Output",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Parse Opus Output":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Sonnet — Client Proposal",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Skip Research":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Merge",
+                                                                   "type":  "main",
+                                                                   "index":  6
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "Claude Sonnet — Proposal":  {
+                                                         "ai_languageModel":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Sonnet — Client Proposal",
+                                                                                          "type":  "ai_languageModel",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                     },
+                        "Sonnet — Client Proposal":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Parse Proposal",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "Parse Proposal":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Build Report Blocks",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Create Client Record":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Create Suggestion Report Doc",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Build Report Blocks":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Create Client Record",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Create Suggestion Report Doc":  {
+                                                             "main":  [
+                                                                          [
+                                                                              {
+                                                                                  "node":  "Create Proposal Doc",
+                                                                                  "type":  "main",
+                                                                                  "index":  0
+                                                                              }
+                                                                          ]
+                                                                      ]
+                                                         },
+                        "Create Proposal Doc":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Create Client Intake Row",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Create Client Intake Row":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Send Notification Email",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     }
+                    },
+    "active":  true,
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "timeSavedMode":  "fixed",
+                     "callerPolicy":  "workflowsFromSameOwner",
+                     "availableInMCP":  false
+                 },
+    "versionId":  "71238e1a-7037-435c-a8f1-10472f487992",
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "YOUR_N8N_INSTANCE_ID"
+             },
+    "id":  "YOUR_WORKFLOW_ID",
+    "tags":  [
+
+             ]
+}
